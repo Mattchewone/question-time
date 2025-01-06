@@ -1,5 +1,5 @@
 import * as wf from '@temporalio/workflow';
-import type * as activities from './activities';
+import * as activities from './activities';
 
 const {
   getClue,
@@ -26,10 +26,11 @@ export interface GameState {
   lastQuestion: string;
   currentHint: string;
   timeRemaining: number;
+  totalClues: number;
   lastAnswerCorrect: boolean | null;
 }
 
-export async function questionTimeWorkflow({ player }: { player: string }): Promise<void> {
+export async function questionTimeWorkflow({ player, totalClues }: { player: string, totalClues: number }): Promise<void> {
   const GAME_DURATION_MS = 120000;
   let timeRemaining = GAME_DURATION_MS;
 
@@ -44,6 +45,7 @@ export async function questionTimeWorkflow({ player }: { player: string }): Prom
     lastQuestion: initialClue.question,
     currentHint: initialClue.hint,
     timeRemaining,
+    totalClues,
     lastAnswerCorrect: null
   };
 
@@ -77,7 +79,7 @@ export async function questionTimeWorkflow({ player }: { player: string }): Prom
       await updateLeaderboard(player, state.currentClue);
       state.currentClue += 1;
 
-      if (state.currentClue > 4) {
+      if (state.currentClue > state.totalClues) {
         state.completed = true;
         return { success: true, message: 'Congratulations! You found the treasure.' };
       } else {

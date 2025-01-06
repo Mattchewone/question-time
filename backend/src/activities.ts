@@ -8,7 +8,7 @@ export interface Clue {
   answer: string;
 }
 
-const clues: { [key: number]: Clue } = {
+export const clues: { [key: number]: Clue } = {
   1: {
     hint: 'A fundamental building block in programming used to store data.',
     question: 'What is the term for a variable that holds data in programming?',

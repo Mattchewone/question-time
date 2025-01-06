@@ -5,8 +5,8 @@ if ! command -v pm2 &> /dev/null; then
     npm install -g pm2
 fi
 
-# Check if services are already running
-if pm2 list | grep -q "question-time"; then
+# Check if services are actually running
+if pm2 jlist | jq -e '.[] | select(.name | test("question-time-(api|worker|frontend)")) | select(.pm2_env.status == "online")' > /dev/null; then
     echo "Services already running. Reloading instead..."
     ./scripts/reload.sh
     exit 0

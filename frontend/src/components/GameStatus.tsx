@@ -9,6 +9,7 @@ export interface GameState {
   currentHint: string;
   timeRemaining: number;
   lastAnswerCorrect: boolean | null;
+  totalClues: number;
 }
 
 interface GameStatusProps {
@@ -28,7 +29,7 @@ const GameStatus: React.FC<GameStatusProps> = ({ timeLeft, gameState }) => {
   return (
     <div>
       <h2>Game Status</h2>
-      <p><strong>Current Clue:</strong> {gameState.currentClue > 4 ? 'Completed' : gameState.currentClue}</p>
+      <p><strong>Current Clue:</strong> {gameState.currentClue > gameState.totalClues ? 'Completed' : gameState.currentClue}</p>
       <p><strong>Time Left:</strong> {formatTime(timeLeft)}</p>
       {gameState.lastQuestion && (
         <div>
@@ -36,8 +37,8 @@ const GameStatus: React.FC<GameStatusProps> = ({ timeLeft, gameState }) => {
           <p>{gameState.lastQuestion}</p>
           {gameState.currentHint && (
             <div>
-              <h3>Hint:</h3>
-              <p>{gameState.currentHint}</p>
+              <h3 className="hint-label">Hint:</h3>
+              <p className="hint-text">{gameState.currentHint}</p>
             </div>
           )}
         </div>

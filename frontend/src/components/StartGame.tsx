@@ -33,18 +33,20 @@ const StartGame: React.FC<StartGameProps> = ({ onStart }) => {
   return (
     <div>
       <h2>Start Game</h2>
-      <div>
-        <input
-          type="text"
-          placeholder="Enter Your Name"
-          value={playerName}
-          onChange={(e) => setPlayerName(e.target.value)}
-        />
-      </div>
-      <button onClick={handleStart} disabled={loading}>
-        {loading ? 'Starting...' : 'Start Game'}
-      </button>
-      {message && <p>{message}</p>}
+      <form onSubmit={handleStart}>
+        <div>
+          <input
+            type="text"
+            placeholder="Enter Your Name"
+            value={playerName}
+            onChange={(e) => setPlayerName(e.target.value)}
+          />
+        </div>
+        <button onClick={handleStart} disabled={loading}>
+          {loading ? 'Starting...' : 'Start Game'}
+        </button>
+        {message && <p>{message}</p>}
+      </form>
     </div>
   );
 };
