@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface GameState {
-  currentClue: number;
+  currentQuestion: number;
   paused: boolean;
   completed: boolean;
   player: string;
@@ -9,7 +9,7 @@ export interface GameState {
   currentHint: string;
   timeRemaining: number;
   lastAnswerCorrect: boolean | null;
-  totalClues: number;
+  totalQuestions: number;
 }
 
 interface GameStatusProps {
@@ -29,7 +29,7 @@ const GameStatus: React.FC<GameStatusProps> = ({ timeLeft, gameState }) => {
   return (
     <div>
       <h2>Game Status</h2>
-      <p><strong>Current Clue:</strong> {gameState.currentClue > gameState.totalClues ? 'Completed' : gameState.currentClue}</p>
+      <p><strong>Current Question:</strong> {gameState.currentQuestion > gameState.totalQuestions ? 'Completed' : gameState.currentQuestion}</p>
       <p><strong>Time Left:</strong> {formatTime(timeLeft)}</p>
       {gameState.lastQuestion && (
         <div>

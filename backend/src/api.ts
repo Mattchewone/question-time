@@ -46,7 +46,7 @@ router.post('/start', (async (req: Request, res: Response) => {
     const questionHandleStart = await workflowClient.start('questionTimeWorkflow', {
       workflowId,
       taskQueue: 'question-time-queue',
-      args: [{ player, totalClues: Object.keys(activities.clues).length }],
+      args: [{ player, totalQuestions: Object.keys(activities.questions).length }],
       workflowIdReusePolicy: 'ALLOW_DUPLICATE',
     });
 

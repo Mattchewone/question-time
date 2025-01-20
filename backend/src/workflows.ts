@@ -2,7 +2,7 @@ import * as wf from '@temporalio/workflow';
 import * as activities from './activities';
 
 const {
-  getClue,
+  getQuestion,
   validateAnswerAI,
   updateLeaderboard,
 } = wf.proxyActivities<typeof activities>({
@@ -19,34 +19,36 @@ export const submitAnswerUpdate = wf.defineUpdate<
 export const getGameStateQuery = wf.defineQuery('getGameState');
 
 export interface GameState {
-  currentClue: number;
+  currentQuestion: number;
   paused: boolean;
   completed: boolean;
   player: string;
   lastQuestion: string;
   currentHint: string;
   timeRemaining: number;
-  totalClues: number;
+  totalQuestions: number;
   lastAnswerCorrect: boolean | null;
+  answeredQuestionIds: number[];
 }
 
-export async function questionTimeWorkflow({ player, totalClues }: { player: string, totalClues: number }): Promise<void> {
+export async function questionTimeWorkflow({ player, totalQuestions }: { player: string, totalQuestions: number }): Promise<void> {
   const GAME_DURATION_MS = 120000;
   let timeRemaining = GAME_DURATION_MS;
 
-  // Get initial question and hint
-  const initialClue = await getClue(1);
+  // Get initial random question
+  const initialQuestion = await getQuestion([]);
 
   let state: GameState = {
-    currentClue: 1,
+    currentQuestion: 1,
     paused: false,
     completed: false,
     player,
-    lastQuestion: initialClue.question,
-    currentHint: initialClue.hint,
+    lastQuestion: initialQuestion.question,
+    currentHint: initialQuestion.hint,
     timeRemaining,
-    totalClues,
-    lastAnswerCorrect: null
+    totalQuestions,
+    lastAnswerCorrect: null,
+    answeredQuestionIds: [initialQuestion.id]
   };
 
   wf.setHandler(pauseSignal, () => {
@@ -68,24 +70,26 @@ export async function questionTimeWorkflow({ player, totalClues }: { player: str
       return { success: false, message: 'Game is completed' };
     }
 
-    const clueData = await getClue(state.currentClue);
-    state.lastQuestion = clueData.question;
+    const questionData = await getQuestion(state.answeredQuestionIds);
+    state.lastQuestion = questionData.question;
 
-    const isCorrect = await validateAnswerAI(state.currentClue, clueData.question, answer);
+    const isCorrect = await validateAnswerAI(questionData.id, questionData.question, answer);
     state.lastAnswerCorrect = isCorrect;
 
     if (isCorrect) {
       console.log(`Player ${player} answered correctly.`);
-      await updateLeaderboard(player, state.currentClue);
-      state.currentClue += 1;
+      await updateLeaderboard(player, state.currentQuestion);
+      state.currentQuestion += 1;
+      state.answeredQuestionIds.push(questionData.id);
 
-      if (state.currentClue > state.totalClues) {
+      if (state.currentQuestion > state.totalQuestions) {
         state.completed = true;
-        return { success: true, message: 'Congratulations! You found the treasure.' };
+        return { success: true, message: 'Congratulations! You completed the quiz.' };
       } else {
-        const nextClue = await getClue(state.currentClue);
-        state.lastQuestion = nextClue.question;
-        state.currentHint = nextClue.hint;
+        const nextQuestion = await getQuestion(state.answeredQuestionIds);
+        state.lastQuestion = nextQuestion.question;
+        state.currentHint = nextQuestion.hint;
+        state.answeredQuestionIds.push(nextQuestion.id);
         return { success: true, message: `Correct!` };
       }
     } else {
