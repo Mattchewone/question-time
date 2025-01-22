@@ -29,6 +29,7 @@ export interface GameState {
   totalQuestions: number;
   lastAnswerCorrect: boolean | null;
   answeredQuestionIds: number[];
+  currentQuestionId: number;
 }
 
 export async function questionTimeWorkflow({ player, totalQuestions }: { player: string, totalQuestions: number }): Promise<void> {
@@ -48,7 +49,8 @@ export async function questionTimeWorkflow({ player, totalQuestions }: { player:
     timeRemaining,
     totalQuestions,
     lastAnswerCorrect: null,
-    answeredQuestionIds: [initialQuestion.id]
+    answeredQuestionIds: [initialQuestion.id],
+    currentQuestionId: initialQuestion.id
   };
 
   wf.setHandler(pauseSignal, () => {
@@ -70,29 +72,29 @@ export async function questionTimeWorkflow({ player, totalQuestions }: { player:
       return { success: false, message: 'Game is completed' };
     }
 
-    const questionData = await getQuestion(state.answeredQuestionIds);
-    state.lastQuestion = questionData.question;
-
-    const isCorrect = await validateAnswerAI(questionData.id, questionData.question, answer);
+    // Validate against the current question ID
+    const isCorrect = await validateAnswerAI(state.currentQuestionId, state.lastQuestion, answer);
     state.lastAnswerCorrect = isCorrect;
 
     if (isCorrect) {
       console.log(`Player ${player} answered correctly.`);
       await updateLeaderboard(player, state.currentQuestion);
       state.currentQuestion += 1;
-      state.answeredQuestionIds.push(questionData.id);
-
+      
       if (state.currentQuestion > state.totalQuestions) {
         state.completed = true;
         return { success: true, message: 'Congratulations! You completed the quiz.' };
       } else {
+        // Get next question only on correct answer
         const nextQuestion = await getQuestion(state.answeredQuestionIds);
         state.lastQuestion = nextQuestion.question;
         state.currentHint = nextQuestion.hint;
+        state.currentQuestionId = nextQuestion.id;
         state.answeredQuestionIds.push(nextQuestion.id);
         return { success: true, message: `Correct!` };
       }
     } else {
+      // Keep the same question when answer is incorrect
       return { success: false, message: 'Incorrect answer, try again.' };
     }
   });

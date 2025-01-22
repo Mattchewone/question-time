@@ -62,7 +62,7 @@ export const questions: Question[] = [
     id: 9,
     hint: 'A Temporal concept that allows sync communication.',
     question: 'What feature of Temporal enables workflows to receive signals and return a response?',
-    answer: 'Workflow Persistence',
+    answer: 'Update',
   },
   {
     id: 10,
